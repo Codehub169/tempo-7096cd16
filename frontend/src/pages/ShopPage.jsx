@@ -3,7 +3,7 @@ import { Box, Flex, Heading, Text, Grid, Select, CheckboxGroup, Checkbox, VStack
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 
-const API_BASE_URL = 'http://localhost:9000/api';
+const API_BASE_URL = '/api';
 
 const ShopPage = () => {
   const location = useLocation();

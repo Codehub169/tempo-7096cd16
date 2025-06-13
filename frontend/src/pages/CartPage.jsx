@@ -3,7 +3,7 @@ import { Box, Flex, Grid, Heading, Text, Button, Image, Icon, HStack, Input, VSt
 import { FiTrash2, FiMinus, FiPlus, FiShoppingCart, FiAlertCircle } from 'react-icons/fi';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
-const API_BASE_URL = 'http://localhost:9000/api';
+const API_BASE_URL = '/api';
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);

@@ -3,7 +3,7 @@ import { Box, Flex, Grid, Heading, Text, Button, Image, Icon, HStack, Input, use
 import { FiShoppingCart, FiMinus, FiPlus, FiCheckCircle } from 'react-icons/fi';
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
 
-const API_BASE_URL = 'http://localhost:9000/api';
+const API_BASE_URL = '/api';
 
 const ProductDetailPage = () => {
   const { productId } = useParams();

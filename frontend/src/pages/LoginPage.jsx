@@ -4,7 +4,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { FaUserAstronaut, FaKey } from 'react-icons/fa';
 import { GiHeartWings } from 'react-icons/gi';
 
-const API_BASE_URL = 'http://localhost:9000/api';
+const API_BASE_URL = '/api';
 
 const AnimatedShape = ({ color, left, animationDelay, animationDuration, size, isSquare }) => {
   const style = {

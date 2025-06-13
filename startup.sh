@@ -75,7 +75,7 @@ echo "Backend setup complete."
 echo "Starting backend server on port 9000..."
 # The backend server (server.js) is configured to serve the frontend static files.
 # PORT environment variable is used by server.js. Default is 9000.
-export PORT=${PORT:-9000}
+export PORT=9000
 node server.js
 
 echo "Plushie Paradise Application started successfully!"

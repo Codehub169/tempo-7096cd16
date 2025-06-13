@@ -3,7 +3,7 @@ import { Box, Flex, Heading, Text, Button, Grid, Image, Link, Icon, VStack, Circ
 import { Link as RouterLink } from 'react-router-dom';
 import ProductCard from '../components/ProductCard'; // Assuming ProductCard can be used here
 
-const API_BASE_URL = 'http://localhost:9000/api';
+const API_BASE_URL = '/api';
 
 const HomePage = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);

@@ -4,7 +4,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { FiCreditCard, FiHome, FiPackage, FiTruck, FiCheckCircle, FiAlertCircle } from 'react-icons/fi'; 
 import { GiHeartWings } from 'react-icons/gi';
 
-const API_BASE_URL = 'http://localhost:9000/api';
+const API_BASE_URL = '/api';
 
 const steps = [
   { title: 'Shipping', description: 'Your Delivery Address', icon: FiHome },
@@ -205,9 +205,9 @@ const CheckoutPage = () => {
             <Text mb={4} color="brand.text">This is a placeholder payment form. No real payment will be processed.</Text>
             <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={5}>
               <FormControl isRequired gridColumn={{ md: '1 / -1' }}><FormLabel>Name on Card</FormLabel><Input name="cardName" placeholder="Cuddly Friend" value={paymentInfo.cardName} onChange={(e) => handleInputChange('payment', e)}/></FormControl>
-              <FormControl isRequired gridColumn={{ md: '1 / -1' }}><FormLabel>Card Number</FormLabel><Input name="cardNumber" type="tel" inputMode="numeric" pattern="[0-9\s]{13,19}" autoComplete="cc-number" maxLength="19" placeholder="•••• •••• •••• ••••" value={paymentInfo.cardNumber} onChange={(e) => handleInputChange('payment', e)}/></FormControl>
+              <FormControl isRequired gridColumn={{ md: '1 / -1' }}><FormLabel>Card Number</FormLabel><Input name="cardNumber" type="tel" inputMode="numeric" pattern="[0-9\s]{13,19}" autoComplete="cc-number" maxLength="19" placeholder="ullullullull ullullullull ullullullull ullullullull" value={paymentInfo.cardNumber} onChange={(e) => handleInputChange('payment', e)}/></FormControl>
               <FormControl isRequired><FormLabel>Expiry Date</FormLabel><Input name="expiry" placeholder="MM / YY" value={paymentInfo.expiry} onChange={(e) => handleInputChange('payment', e)}/></FormControl>
-              <FormControl isRequired><FormLabel>CVC</FormLabel><Input name="cvc" placeholder="•••" maxLength="4" value={paymentInfo.cvc} onChange={(e) => handleInputChange('payment', e)}/></FormControl>
+              <FormControl isRequired><FormLabel>CVC</FormLabel><Input name="cvc" placeholder="ullullull" maxLength="4" value={paymentInfo.cvc} onChange={(e) => handleInputChange('payment', e)}/></FormControl>
             </Grid>
             <Flex justify="space-between" mt={8}>
               <Button variant="outline" colorScheme="primary" onClick={goToPrevious} size="lg">Back to Shipping</Button>
