@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Heading, Text, VStack, FormControl, FormLabel, Input, Textarea, Select, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Button, useToast, CircularProgress, Alert, AlertIcon, Icon, Breadcrumb, BreadcrumbItem, BreadcrumbLink, Flex } from '@chakra-ui/react';
+import { Box, Heading, Text, VStack, FormControl, FormLabel, Input, Textarea, Select, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Button, useToast, CircularProgress, Alert, AlertIcon, Icon, Breadcrumb, BreadcrumbItem, BreadcrumbLink, Flex, Divider, HStack } from '@chakra-ui/react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { FiPlusCircle, FiPackage, FiAlertCircle, FiArrowLeft } from 'react-icons/fi';
+import { FiPlusCircle, FiPackage, FiAlertCircle, FiTag } from 'react-icons/fi'; // Added FiTag
 import { ChevronRightIcon } from '@chakra-ui/icons';
 
 const API_BASE_URL = '/api';
@@ -10,7 +10,7 @@ const AdminPage = () => {
   const navigate = useNavigate();
   const toast = useToast();
 
-  const [formData, setFormData] = useState({
+  const [productFormData, setProductFormData] = useState({
     name: '',
     description: '',
     price: '',
@@ -19,9 +19,11 @@ const AdminPage = () => {
     stock_quantity: '',
     popularity: '0',
   });
+  const [newCategoryName, setNewCategoryName] = useState('');
   const [categories, setCategories] = useState([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittingProduct, setIsSubmittingProduct] = useState(false);
+  const [isSubmittingCategory, setIsSubmittingCategory] = useState(false);
   const [fetchError, setFetchError] = useState(null);
 
   useEffect(() => {
@@ -39,51 +41,58 @@ const AdminPage = () => {
     }
   }, [navigate, toast]);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setIsLoadingCategories(true);
-      setFetchError(null);
-      try {
-        const response = await fetch(`${API_BASE_URL}/categories`);
-        if (!response.ok) throw new Error('Failed to fetch categories');
-        const data = await response.json();
-        setCategories(data);
-        if (data.length > 0) {
-          setFormData(prev => ({ ...prev, categoryName: data[0].name })); // Default to first category
-        }
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-        setFetchError(error.message);
-        toast({ title: 'Error', description: `Could not load categories: ${error.message}`, status: 'error', duration: 3000, isClosable: true });
+  const fetchCategories = useCallback(async () => {
+    setIsLoadingCategories(true);
+    setFetchError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/categories`);
+      if (!response.ok) throw new Error('Failed to fetch categories');
+      const data = await response.json();
+      setCategories(data);
+      if (data.length > 0) {
+        setProductFormData(prev => ({ ...prev, categoryName: data[0].name }));
+      } else {
+        setProductFormData(prev => ({ ...prev, categoryName: '' }));
       }
-      setIsLoadingCategories(false);
-    };
-    fetchCategories();
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      setFetchError(error.message);
+      toast({ title: 'Error', description: `Could not load categories: ${error.message}`, status: 'error', duration: 3000, isClosable: true });
+    }
+    setIsLoadingCategories(false);
   }, [toast]);
 
-  const handleInputChange = (e) => {
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  const handleProductInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setProductFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleNumberInputChange = (name, valueAsString, valueAsNumber) => {
-    setFormData(prev => ({ ...prev, [name]: valueAsString }));
+  const handleProductNumberInputChange = (name, valueAsString, valueAsNumber) => {
+    setProductFormData(prev => ({ ...prev, [name]: valueAsString }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleNewCategoryInputChange = (e) => {
+    setNewCategoryName(e.target.value);
+  };
+
+  const handleAddProductSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setIsSubmittingProduct(true);
 
-    if (!formData.name || !formData.description || !formData.price || !formData.categoryName || !formData.stock_quantity) {
-      toast({ title: 'Missing Fields', description: 'Please fill all required fields.', status: 'warning', duration: 3000, isClosable: true });
-      setIsSubmitting(false);
+    if (!productFormData.name || !productFormData.description || !productFormData.price || !productFormData.categoryName || !productFormData.stock_quantity) {
+      toast({ title: 'Missing Fields', description: 'Please fill all required fields for the product.', status: 'warning', duration: 3000, isClosable: true });
+      setIsSubmittingProduct(false);
       return;
     }
 
     const token = localStorage.getItem('authToken');
     if (!token) {
       navigate('/login');
-      setIsSubmitting(false);
+      setIsSubmittingProduct(false);
       return;
     }
 
@@ -95,10 +104,10 @@ const AdminPage = () => {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          ...formData,
-          price: parseFloat(formData.price),
-          stock_quantity: parseInt(formData.stock_quantity),
-          popularity: parseInt(formData.popularity) || 0,
+          ...productFormData,
+          price: parseFloat(productFormData.price),
+          stock_quantity: parseInt(productFormData.stock_quantity),
+          popularity: parseInt(productFormData.popularity) || 0,
         }),
       });
 
@@ -107,23 +116,65 @@ const AdminPage = () => {
         throw new Error(responseData.message || 'Failed to add product');
       }
 
-      toast({ title: 'Product Added!', description: `${formData.name} has been successfully added.`, status: 'success', duration: 3000, isClosable: true });
-      // Reset form or navigate away
-      setFormData({
+      toast({ title: 'Product Added!', description: `${productFormData.name} has been successfully added.`, status: 'success', duration: 3000, isClosable: true });
+      setProductFormData({
         name: '', description: '', price: '', imageUrl: '', categoryName: categories.length > 0 ? categories[0].name : '', stock_quantity: '', popularity: '0',
       });
     } catch (error) {
       console.error('Error adding product:', error);
       toast({ title: 'Error Adding Product', description: error.message, status: 'error', duration: 4000, isClosable: true });
     }
-    setIsSubmitting(false);
+    setIsSubmittingProduct(false);
   };
+
+  const handleAddCategorySubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmittingCategory(true);
+
+    if (!newCategoryName.trim()) {
+      toast({ title: 'Missing Field', description: 'Please enter a category name.', status: 'warning', duration: 3000, isClosable: true });
+      setIsSubmittingCategory(false);
+      return;
+    }
+
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      navigate('/login');
+      setIsSubmittingCategory(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/categories`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: newCategoryName.trim() }),
+      });
+
+      const responseData = await response.json();
+      if (!response.ok) {
+        throw new Error(responseData.message || 'Failed to add category');
+      }
+
+      toast({ title: 'Category Added!', description: `${newCategoryName.trim()} has been successfully added.`, status: 'success', duration: 3000, isClosable: true });
+      setNewCategoryName('');
+      fetchCategories(); // Refresh category list
+    } catch (error) {
+      console.error('Error adding category:', error);
+      toast({ title: 'Error Adding Category', description: error.message, status: 'error', duration: 4000, isClosable: true });
+    }
+    setIsSubmittingCategory(false);
+  };
+
 
   return (
     <Box>
       <Box py={{ base: '2rem', md: '3rem' }} bgGradient="linear(to-br, brand.secondary, brand.background)" textAlign="center">
         <Heading as="h1" fontSize={{ base: '2xl', md: '3xl' }} color="brand.heading" fontWeight="bold">
-          Admin Panel - Add New Product
+          Admin Panel
         </Heading>
         <Breadcrumb spacing="8px" separator={<ChevronRightIcon color="brand.text" />} display="flex" justifyContent="center" mt={2}>
           <BreadcrumbItem>
@@ -144,80 +195,109 @@ const AdminPage = () => {
           </Alert>
         )}
         {!isLoadingCategories && !fetchError && (
-          <VStack as="form" onSubmit={handleSubmit} spacing={6} bg="white" p={{ base: 6, md: 8 }} borderRadius="xl" boxShadow="lg">
-            <Heading size="lg" color="brand.heading" display="flex" alignItems="center">
-              <Icon as={FiPackage} mr={3} color="brand.primary" /> New Product Details
-            </Heading>
+          <VStack spacing={10} align="stretch">
+            {/* Add New Category Form */}
+            <VStack as="form" onSubmit={handleAddCategorySubmit} spacing={6} bg="white" p={{ base: 6, md: 8 }} borderRadius="xl" boxShadow="lg">
+                <Heading size="lg" color="brand.heading" display="flex" alignItems="center" w="full">
+                    <Icon as={FiTag} mr={3} color="brand.primary" /> Add New Category
+                </Heading>
+                <FormControl isRequired>
+                    <FormLabel>Category Name</FormLabel>
+                    <HStack>
+                        <Input name="newCategoryName" value={newCategoryName} onChange={handleNewCategoryInputChange} placeholder="e.g., Mythical Creatures" />
+                        <Button 
+                            type="submit" 
+                            variant="solid"
+                            colorScheme="pink"
+                            leftIcon={<FiPlusCircle />}
+                            isLoading={isSubmittingCategory}
+                            loadingText="Adding..."
+                            px={6}
+                        >
+                            Add
+                        </Button>
+                    </HStack>
+                </FormControl>
+            </VStack>
 
-            <FormControl isRequired>
-              <FormLabel>Product Name</FormLabel>
-              <Input name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g., Cuddly Teddy Bear" />
-            </FormControl>
+            <Divider />
 
-            <FormControl isRequired>
-              <FormLabel>Description</FormLabel>
-              <Textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Detailed description of the plushie..." />
-            </FormControl>
+            {/* Add New Product Form */}
+            <VStack as="form" onSubmit={handleAddProductSubmit} spacing={6} bg="white" p={{ base: 6, md: 8 }} borderRadius="xl" boxShadow="lg">
+              <Heading size="lg" color="brand.heading" display="flex" alignItems="center" w="full">
+                <Icon as={FiPackage} mr={3} color="brand.primary" /> Add New Product
+              </Heading>
 
-            <FormControl isRequired>
-              <FormLabel>Price ($)</FormLabel>
-              <NumberInput min={0.01} precision={2} name="price" value={formData.price} onChange={(valueString) => handleNumberInputChange('price', valueString)}>
-                <NumberInputField placeholder="e.g., 29.99" />
-                <NumberInputStepper>
-                  <NumberIncrementStepper />
-                  <NumberDecrementStepper />
-                </NumberInputStepper>
-              </NumberInput>
-            </FormControl>
+              <FormControl isRequired>
+                <FormLabel>Product Name</FormLabel>
+                <Input name="name" value={productFormData.name} onChange={handleProductInputChange} placeholder="e.g., Cuddly Teddy Bear" />
+              </FormControl>
 
-            <FormControl>
-              <FormLabel>Image URL (Optional)</FormLabel>
-              <Input name="imageUrl" value={formData.imageUrl} onChange={handleInputChange} placeholder="https://example.com/image.jpg" />
-            </FormControl>
+              <FormControl isRequired>
+                <FormLabel>Description</FormLabel>
+                <Textarea name="description" value={productFormData.description} onChange={handleProductInputChange} placeholder="Detailed description of the plushie..." />
+              </FormControl>
 
-            <FormControl isRequired>
-              <FormLabel>Category</FormLabel>
-              <Select name="categoryName" value={formData.categoryName} onChange={handleInputChange} placeholder={categories.length === 0 ? "No categories found" : "Select category"} isDisabled={categories.length === 0}>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.name}>{cat.name}</option>
-                ))}
-              </Select>
-            </FormControl>
+              <FormControl isRequired>
+                <FormLabel>Price ($)</FormLabel>
+                <NumberInput min={0.01} precision={2} name="price" value={productFormData.price} onChange={(valueString) => handleProductNumberInputChange('price', valueString)}>
+                  <NumberInputField placeholder="e.g., 29.99" />
+                  <NumberInputStepper>
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
+                </NumberInput>
+              </FormControl>
 
-            <FormControl isRequired>
-              <FormLabel>Stock Quantity</FormLabel>
-              <NumberInput min={0} name="stock_quantity" value={formData.stock_quantity} onChange={(valueString) => handleNumberInputChange('stock_quantity', valueString)}>
-                <NumberInputField placeholder="e.g., 50" />
-                <NumberInputStepper>
-                  <NumberIncrementStepper />
-                  <NumberDecrementStepper />
-                </NumberInputStepper>
-              </NumberInput>
-            </FormControl>
+              <FormControl>
+                <FormLabel>Image URL (Optional)</FormLabel>
+                <Input name="imageUrl" value={productFormData.imageUrl} onChange={handleProductInputChange} placeholder="https://example.com/image.jpg" />
+              </FormControl>
 
-            <FormControl>
-              <FormLabel>Popularity (Optional)</FormLabel>
-              <NumberInput min={0} name="popularity" value={formData.popularity} onChange={(valueString) => handleNumberInputChange('popularity', valueString)}>
-                <NumberInputField placeholder="e.g., 100" />
-                <NumberInputStepper>
-                  <NumberIncrementStepper />
-                  <NumberDecrementStepper />
-                </NumberInputStepper>
-              </NumberInput>
-            </FormControl>
+              <FormControl isRequired>
+                <FormLabel>Category</FormLabel>
+                <Select name="categoryName" value={productFormData.categoryName} onChange={handleProductInputChange} placeholder={categories.length === 0 ? "No categories found/add one first" : "Select category"} isDisabled={categories.length === 0}>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                  ))}
+                </Select>
+              </FormControl>
 
-            <Button 
-              type="submit" 
-              variant="gradient" 
-              leftIcon={<FiPlusCircle />} 
-              isLoading={isSubmitting}
-              loadingText="Adding Product..."
-              size="lg"
-              w="full"
-              isDisabled={categories.length === 0 || isLoadingCategories}
-            >
-              Add Product
-            </Button>
+              <FormControl isRequired>
+                <FormLabel>Stock Quantity</FormLabel>
+                <NumberInput min={0} name="stock_quantity" value={productFormData.stock_quantity} onChange={(valueString) => handleProductNumberInputChange('stock_quantity', valueString)}>
+                  <NumberInputField placeholder="e.g., 50" />
+                  <NumberInputStepper>
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
+                </NumberInput>
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>Popularity (Optional)</FormLabel>
+                <NumberInput min={0} defaultValue={0} name="popularity" value={productFormData.popularity} onChange={(valueString) => handleProductNumberInputChange('popularity', valueString)}>
+                  <NumberInputField placeholder="e.g., 100" />
+                  <NumberInputStepper>
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
+                </NumberInput>
+              </FormControl>
+
+              <Button 
+                type="submit" 
+                variant="gradient" 
+                leftIcon={<FiPlusCircle />} 
+                isLoading={isSubmittingProduct}
+                loadingText="Adding Product..."
+                size="lg"
+                w="full"
+                isDisabled={categories.length === 0 || isLoadingCategories}
+              >
+                Add Product
+              </Button>
+            </VStack>
           </VStack>
         )}
       </Box>

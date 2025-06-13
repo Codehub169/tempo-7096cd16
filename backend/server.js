@@ -171,6 +171,23 @@ app.get('/api/categories', (req, res) => {
     });
 });
 
+app.post('/api/categories', authenticateToken, (req, res) => {
+    const { name } = req.body;
+    if (!name || name.trim() === '') {
+        return res.status(400).json({ message: 'Category name is required.' });
+    }
+    db.run('INSERT INTO categories (name) VALUES (?)', [name.trim()], function(err) {
+        if (err) {
+            if (err.message.includes('UNIQUE constraint failed')) {
+                return res.status(409).json({ message: 'Category name already exists.' });
+            }
+            return res.status(500).json({ message: 'Error creating category.', error: err.message });
+        }
+        res.status(201).json({ message: 'Category created successfully.', id: this.lastID, name: name.trim() });
+    });
+});
+
+
 // Cart Routes (Protected)
 app.get('/api/cart', authenticateToken, (req, res) => {
     db.all('SELECT ci.*, p.name, p.price, p.imageUrl FROM cart_items ci JOIN products p ON ci.product_id = p.id WHERE ci.user_id = ?', [req.user.userId], (err, rows) => {
@@ -271,9 +288,12 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
             db.run('DELETE FROM cart_items WHERE user_id = ?', [req.user.userId], (errCart) => {
                 if (errCart) {
                     console.error('Error clearing cart after order:', errCart.message);
+                    // Decide if this is a rollback-worthy error. For now, proceeding.
                 }
                 db.run('COMMIT', (errCommit) => {
                     if (errCommit) {
+                        // Attempt to rollback if commit fails, though this state is tricky
+                        db.run('ROLLBACK'); 
                         return res.status(500).json({ error: errCommit.message, step: 'commitTransaction' });
                     }
                     res.status(201).json({ message: 'Order placed successfully.', orderId });
