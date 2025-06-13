@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Flex, Link, HStack, IconButton, Icon, Text, useDisclosure, Drawer, DrawerBody, DrawerHeader, DrawerOverlay, DrawerContent, DrawerCloseButton, VStack, Button, Menu, MenuButton, MenuList, MenuItem, MenuDivider } from '@chakra-ui/react';
+import { Box, Flex, Link, HStack, IconButton, Icon, Text, useDisclosure, Drawer, DrawerBody, DrawerHeader, DrawerOverlay, DrawerContent, DrawerCloseButton, VStack, Button, Menu, MenuButton, MenuList, MenuItem, MenuDivider, Divider } from '@chakra-ui/react';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { HamburgerIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import { FaShoppingCart, FaUserCircle } from 'react-icons/fa';
@@ -67,7 +67,9 @@ const Header = () => {
     setIsLoggedIn(true);
     try {
         // Decode username from token (basic client-side decode)
-        const decodedToken = JSON.parse(atob(token.split('.')[1]));
+        const payload = token.split('.')[1];
+        if (!payload) throw new Error('Invalid token format');
+        const decodedToken = JSON.parse(atob(payload));
         setUsername(decodedToken.username || 'User');
 
       const response = await fetch(`${API_BASE_URL}/cart`, {
@@ -89,7 +91,7 @@ const Header = () => {
       console.error('Failed to fetch cart/user data:', error);
       setCartItemCount(0);
       // Potentially handle token parsing error more gracefully
-      if (error instanceof SyntaxError || (error.message && error.message.includes('token'))) {
+      if (error instanceof SyntaxError || (error.message && (error.message.includes('token') || error.message.includes('atob') || error.message.includes('base64')))) {
           localStorage.removeItem('authToken');
           setIsLoggedIn(false);
           setUsername('');
@@ -168,7 +170,7 @@ const Header = () => {
             ))}
           </HStack>
         </HStack>
-        <Flex alignItems={'center'} spacing={{base: 2, md: 4}}>
+        <Flex alignItems={'center'} gap={{base: 2, md: 4}}>
           {isLoggedIn ? (
             <Menu>
               <MenuButton 
