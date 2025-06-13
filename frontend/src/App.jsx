@@ -9,7 +9,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-import NotFoundPage from './pages/NotFoundPage'; // Assuming NotFoundPage will be created or is a placeholder
+// Removed import NotFoundPage from './pages/NotFoundPage'; as it's not used and DefaultNotFoundPage is used instead.
 
 // Placeholder for NotFoundPage if not fully implemented in ./pages/
 const DefaultNotFoundPage = () => <div style={{textAlign: 'center', padding: '2rem'}}>404 - Page Not Found. This plushie seems to have wandered off!</div>;
