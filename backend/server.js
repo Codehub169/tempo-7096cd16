@@ -112,6 +112,49 @@ app.get('/api/products', (req, res) => {
     });
 });
 
+app.post('/api/products', authenticateToken, (req, res) => {
+    const { name, description, price, imageUrl, categoryName, stock_quantity, popularity } = req.body;
+
+    if (!name || !description || price == null || !categoryName || stock_quantity == null) {
+        return res.status(400).json({ message: 'Missing required fields: name, description, price, categoryName, stock_quantity.' });
+    }
+
+    const parsedPrice = parseFloat(price);
+    const parsedStockQuantity = parseInt(stock_quantity);
+    const parsedPopularity = popularity != null ? parseInt(popularity) : 0;
+
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+        return res.status(400).json({ message: 'Price must be a positive number.' });
+    }
+    if (isNaN(parsedStockQuantity) || parsedStockQuantity < 0) {
+        return res.status(400).json({ message: 'Stock quantity must be a non-negative integer.' });
+    }
+    if (popularity != null && (isNaN(parsedPopularity) || parsedPopularity < 0)) {
+        return res.status(400).json({ message: 'Popularity must be a non-negative integer.' });
+    }
+
+    db.get('SELECT id FROM categories WHERE name = ?', [categoryName], (err, category) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error finding category.', error: err.message });
+        }
+        if (!category) {
+            return res.status(404).json({ message: `Category '${categoryName}' not found. Please create it first or use an existing one.` });
+        }
+
+        const category_id = category.id;
+        const sql = `INSERT INTO products (name, description, price, imageUrl, category_id, stock_quantity, popularity, dateAdded)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`; // Ensure dateAdded is set
+        const params = [name, description, parsedPrice, imageUrl || null, category_id, parsedStockQuantity, parsedPopularity];
+
+        db.run(sql, params, function(err) {
+            if (err) {
+                return res.status(500).json({ message: 'Failed to add product.', error: err.message });
+            }
+            res.status(201).json({ message: 'Product added successfully.', productId: this.lastID });
+        });
+    });
+});
+
 app.get('/api/products/:id', (req, res) => {
     db.get('SELECT p.*, c.name as categoryName FROM products p JOIN categories c ON p.category_id = c.id WHERE p.id = ?', [req.params.id], (err, row) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -141,11 +184,9 @@ app.post('/api/cart', authenticateToken, (req, res) => {
     if (!productId || quantity == null || quantity < 1) {
         return res.status(400).json({ message: 'Product ID and valid quantity are required.' });
     }
-    // Check if item already in cart, if so, update quantity, else insert
     db.get('SELECT * FROM cart_items WHERE user_id = ? AND product_id = ?', [req.user.userId, productId], (err, item) => {
         if (err) return res.status(500).json({ error: err.message });
         if (item) {
-            // If item exists, sum new quantity with existing quantity
             const newQuantity = item.quantity + quantity;
             db.run('UPDATE cart_items SET quantity = ? WHERE id = ?', [newQuantity, item.id], function(err) {
                 if (err) return res.status(500).json({ error: err.message });
@@ -163,10 +204,10 @@ app.post('/api/cart', authenticateToken, (req, res) => {
 app.put('/api/cart/:productId', authenticateToken, (req, res) => {
     const { quantity } = req.body;
     const { productId } = req.params;
-    if (quantity == null || quantity < 0) { // Allow 0 to remove, but not negative
+    if (quantity == null || quantity < 0) {
         return res.status(400).json({ message: 'Valid quantity is required (0 or more).' });
     }
-    if (quantity === 0) { // If quantity is 0, effectively remove the item
+    if (quantity === 0) {
         db.run('DELETE FROM cart_items WHERE user_id = ? AND product_id = ?', [req.user.userId, productId], function(err) {
             if (err) return res.status(500).json({ error: err.message });
             if (this.changes === 0) return res.status(404).json({ message: 'Item not found in cart or no change made.'});
@@ -192,7 +233,7 @@ app.delete('/api/cart/:productId', authenticateToken, (req, res) => {
 
 // Order Routes (Protected)
 app.post('/api/orders', authenticateToken, async (req, res) => {
-    const { shippingAddress, items, totalAmount } = req.body; // items should be an array from cart: [{product_id, quantity, price_at_purchase}]
+    const { shippingAddress, items, totalAmount } = req.body;
     if (!shippingAddress || !items || items.length === 0 || totalAmount == null) {
         return res.status(400).json({ message: 'Shipping address, items, and total amount are required.' });
     }
@@ -213,14 +254,13 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
                 stmt.run(orderId, item.product_id, item.quantity, item.price_at_purchase, (err) => {
                     if (err) itemInsertError = err;
                 });
-                // Optionally, update product stock quantity here
                 db.run('UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ? AND stock_quantity >= ?', [item.quantity, item.product_id, item.quantity], function(errUpdateStock) {
                     if (errUpdateStock) console.error("Stock update error: ", errUpdateStock.message); 
                     if (this.changes === 0 && !errUpdateStock) console.warn(`Stock not updated for product ${item.product_id} or insufficient stock.`);
                 });
             }
-            stmt.finalize((errFinalize) => { // Finalize after all runs are queued
-                 if(errFinalize) itemInsertError = itemInsertError || errFinalize; // Catch finalize error, preserve earlier error
+            stmt.finalize((errFinalize) => {
+                 if(errFinalize) itemInsertError = itemInsertError || errFinalize;
             });
 
             if (itemInsertError) {
@@ -228,16 +268,12 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
                 return res.status(500).json({ error: itemInsertError.message, step: 'insertOrderItemsOrFinalize' });
             }
 
-            // Clear cart for the user
             db.run('DELETE FROM cart_items WHERE user_id = ?', [req.user.userId], (errCart) => {
                 if (errCart) {
-                    // This is less critical, so maybe just log it but still commit the order
                     console.error('Error clearing cart after order:', errCart.message);
-                     // Potentially rollback if cart clearing is critical: db.run('ROLLBACK'); return res.status(500).json({error: 'Failed to clear cart'});
                 }
                 db.run('COMMIT', (errCommit) => {
                     if (errCommit) {
-                        // This is a critical error if commit fails
                         return res.status(500).json({ error: errCommit.message, step: 'commitTransaction' });
                     }
                     res.status(201).json({ message: 'Order placed successfully.', orderId });

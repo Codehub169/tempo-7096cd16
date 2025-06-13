@@ -14,6 +14,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import UserAccountPage from './pages/UserAccountPage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
+import AdminPage from './pages/AdminPage'; // Import the new AdminPage
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         <Route path="terms-of-service" element={<TermsOfServicePage />} />
         <Route path="account" element={<UserAccountPage />} />
         <Route path="account/orders" element={<OrderHistoryPage />} />
+        <Route path="admin" element={<AdminPage />} /> {/* Add admin route */}
         <Route path="*" element={<NotFoundPage />} /> {/* Use the new NotFoundPage */}
       </Route>
     </Routes>

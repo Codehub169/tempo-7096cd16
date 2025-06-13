@@ -4,9 +4,9 @@ import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { HamburgerIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import { FaShoppingCart, FaUserCircle } from 'react-icons/fa';
 import { GiHeartWings } from 'react-icons/gi';
-import { FiLogOut, FiUser, FiBox } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiBox, FiGrid } from 'react-icons/fi'; // Added FiGrid
 
-const API_BASE_URL = '/api'; // Changed to relative path
+const API_BASE_URL = '/api'; 
 
 const NavLink = ({ to, children, onClick, isExternal }) => {
   const location = useLocation();
@@ -66,7 +66,6 @@ const Header = () => {
     }
     setIsLoggedIn(true);
     try {
-        // Decode username from token (basic client-side decode)
         const payload = token.split('.')[1];
         if (!payload) throw new Error('Invalid token format');
         const decodedToken = JSON.parse(atob(payload));
@@ -90,7 +89,6 @@ const Header = () => {
     } catch (error) {
       console.error('Failed to fetch cart/user data:', error);
       setCartItemCount(0);
-      // Potentially handle token parsing error more gracefully
       if (error instanceof SyntaxError || (error.message && (error.message.includes('token') || error.message.includes('atob') || error.message.includes('base64')))) {
           localStorage.removeItem('authToken');
           setIsLoggedIn(false);
@@ -132,7 +130,7 @@ const Header = () => {
     setUsername('');
     setCartItemCount(0);
     navigate('/login');
-    if(isOpen) onClose(); // Close mobile drawer if open
+    if(isOpen) onClose();
   };
 
   return (
@@ -195,6 +193,9 @@ const Header = () => {
                 </MenuItem>
                 <MenuItem as={RouterLink} to="/account/orders" icon={<Icon as={FiBox} w={4} h={4} color="brand.primary"/>}>
                   Order History
+                </MenuItem>
+                <MenuItem as={RouterLink} to="/admin" icon={<Icon as={FiGrid} w={4} h={4} color="brand.primary"/>}>
+                  Admin Panel
                 </MenuItem>
                 <MenuDivider borderColor="brand.border"/>
                 <MenuItem onClick={handleLogout} icon={<Icon as={FiLogOut} w={4} h={4} color="red.500"/>} color="red.500" fontWeight="medium">
@@ -270,6 +271,7 @@ const Header = () => {
                 <>
                   <Button as={RouterLink} to="/account" leftIcon={<FiUser/>} justifyContent="flex-start" variant="ghost" onClick={onClose} w="full">My Account</Button>
                   <Button as={RouterLink} to="/account/orders" leftIcon={<FiBox/>} justifyContent="flex-start" variant="ghost" onClick={onClose} w="full">Order History</Button>
+                  <Button as={RouterLink} to="/admin" leftIcon={<FiGrid/>} justifyContent="flex-start" variant="ghost" onClick={onClose} w="full">Admin Panel</Button>
                   <Button onClick={handleLogout} variant="outline" colorScheme="red" w="full" mt={4} leftIcon={<FiLogOut/>}>Logout</Button>
                 </>
               ) : (
