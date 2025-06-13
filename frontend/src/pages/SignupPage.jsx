@@ -1,8 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Heading, Text, Button, VStack, FormControl, Input, InputGroup, InputLeftElement, Icon, Link, Center, useToast } from '@chakra-ui/react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { FaUserPlus, FaEnvelope, FaLock } from 'react-icons/fa'; // More specific icons
-import { GiPlushBear } from 'react-icons/gi'; // Example for logo
+import { FaUserPlus, FaEnvelope, FaLock } from 'react-icons/fa';
+import { GiPlushBear } from 'react-icons/gi';
+
+const API_BASE_URL = 'http://localhost:9000/api';
 
 const AnimatedShape = ({ color, left, animationDelay, animationDuration, size, isSquare }) => {
   const style = {
@@ -24,13 +26,13 @@ const AnimatedShape = ({ color, left, animationDelay, animationDuration, size, i
 const SignupPage = () => {
   const navigate = useNavigate();
   const toast = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Keyframes are likely already injected by LoginPage, but ensure they exist
     const keyframes = `
       @keyframes float {
-        0% { transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 0%; }
-        100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; }
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; }
       }
       @keyframes bounce {
         0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
@@ -40,7 +42,9 @@ const SignupPage = () => {
     `;
     const styleSheet = document.styleSheets[0];
     try {
-        styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
+      if (styleSheet.cssRules && !Array.from(styleSheet.cssRules).some(rule => rule.name === 'float')) {
+           styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
+      }
     } catch (e) {
         console.warn("Could not insert @keyframes rule, it might already exist or browser restrictions apply.", e);
     }
@@ -48,7 +52,7 @@ const SignupPage = () => {
 
   const shapes = Array.from({ length: 15 }).map((_, i) => ({
     id: i,
-    color: ['primary.200', 'secondary.200', 'accent.200', 'blue.200', 'pink.100'][Math.floor(Math.random() * 5)],
+    color: ['brand.primary', 'brand.secondary', 'brand.accent', 'blue.200', 'pink.100'][Math.floor(Math.random() * 5)],
     left: Math.random() * 100,
     animationDelay: Math.random() * 10,
     animationDuration: Math.random() * 15 + 10,
@@ -56,8 +60,9 @@ const SignupPage = () => {
     isSquare: Math.random() > 0.5,
   }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     const username = e.target.username.value;
     const email = e.target.email.value;
     const password = e.target.password.value;
@@ -70,30 +75,44 @@ const SignupPage = () => {
         duration: 3000,
         isClosable: true,
       });
+      setIsLoading(false);
       return;
     }
 
-    toast({
-      title: "Creating account...",
-      status: "info",
-      duration: 1500,
-      isClosable: true,
-    });
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Signup failed');
+      }
+      
       toast({
         title: "Account Created!",
-        description: "Welcome to the Plushie Pals club!",
+        description: "Welcome to the Plushie Pals club! Please login.",
         status: "success",
-        duration: 2000,
+        duration: 3000,
         isClosable: true,
       });
       navigate('/login'); // Redirect to login page after signup
-    }, 1500);
+    } catch (error) {
+      toast({
+        title: "Signup Failed",
+        description: error.message || "Could not create account. Please try again.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+    setIsLoading(false);
   };
 
   return (
-    <Box minH="calc(100vh - 160px)" bg="blue.50" display="flex" alignItems="center" justifyContent="center" position="relative" overflow="hidden" py={10}>
+    <Box minH="calc(100vh - 160px)" bg="brand.lightBg" display="flex" alignItems="center" justifyContent="center" position="relative" overflow="hidden" py={10}>
       <Box position="absolute" top="0" left="0" w="full" h="full" zIndex="0">
         {shapes.map(shape => (
           <AnimatedShape key={shape.id} {...shape} />
@@ -107,15 +126,15 @@ const SignupPage = () => {
           bg="white"
           p={{ base: 8, md: 12 }}
           borderRadius="30px"
-          boxShadow="0 15px 35px var(--chakra-colors-accent-200)"
+          boxShadow="0 15px 35px var(--chakra-colors-brand-accent)"
           textAlign="center"
           w="full"
           transition="transform 0.3s ease"
           _hover={{ transform: 'translateY(-5px)' }}
         >
           <VStack spacing={3} mb={4}>
-            <Icon as={GiPlushBear} w={20} h={20} color="primary.500" animation="bounce 1.5s infinite" />
-            <Heading as="h1" size="xl" color="headingColor">
+            <Icon as={GiPlushBear} w={20} h={20} color="brand.primary" animation="bounce 1.5s infinite" />
+            <Heading as="h1" size="xl" color="brand.heading">
               Join the Club!
             </Heading>
           </VStack>
@@ -123,7 +142,7 @@ const SignupPage = () => {
           <FormControl id="username">
             <InputGroup>
               <InputLeftElement pointerEvents="none">
-                <Icon as={FaUserPlus} color="primary.400" />
+                <Icon as={FaUserPlus} color="brand.primary" />
               </InputLeftElement>
               <Input name="username" type="text" placeholder="Create a Codename" variant="auth" />
             </InputGroup>
@@ -132,7 +151,7 @@ const SignupPage = () => {
           <FormControl id="email">
             <InputGroup>
               <InputLeftElement pointerEvents="none">
-                <Icon as={FaEnvelope} color="primary.400" />
+                <Icon as={FaEnvelope} color="brand.primary" />
               </InputLeftElement>
               <Input name="email" type="email" placeholder="Your Email Address" variant="auth" />
             </InputGroup>
@@ -141,19 +160,19 @@ const SignupPage = () => {
           <FormControl id="password">
             <InputGroup>
               <InputLeftElement pointerEvents="none">
-                <Icon as={FaLock} color="primary.400" />
+                <Icon as={FaLock} color="brand.primary" />
               </InputLeftElement>
               <Input name="password" type="password" placeholder="Create a Secret Handshake" variant="auth" />
             </InputGroup>
           </FormControl>
 
-          <Button type="submit" variant="gradient" w="full" size="lg">
+          <Button type="submit" variant="gradient" w="full" size="lg" isLoading={isLoading}>
             Become a Pal
           </Button>
 
           <Text fontSize="sm">
             Already a member?{' '}
-            <Link as={RouterLink} to="/login" color="accent.500" fontWeight="medium" _hover={{ color: 'primary.500', textDecoration: 'underline' }}>
+            <Link as={RouterLink} to="/login" color="brand.accent" fontWeight="medium" _hover={{ color: 'brand.primary', textDecoration: 'underline' }}>
               Enter the Clubhouse
             </Link>
           </Text>

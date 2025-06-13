@@ -82,7 +82,6 @@ const components = {
           color: 'brand.accent',
         },
       }),
-      // For gradient buttons like on login/signup page
       gradient: (props) => ({
         bgGradient: 'linear(to-r, brand.primary, brand.accent)',
         color: 'brand.white',
@@ -119,13 +118,27 @@ const components = {
           },
         },
       },
+      auth: { // Added auth variant
+        field: {
+          borderRadius: '15px',
+          bg: 'brand.lightBg', // Lighter background for auth forms
+          borderColor: 'brand.border',
+          boxShadow: 'sm',
+          _hover: {
+            borderColor: 'brand.primary',
+          },
+          _focus: {
+            borderColor: 'brand.accent',
+            boxShadow: `0 0 0 2px var(--chakra-colors-brand-accent)`,
+            bg: 'brand.white',
+          },
+        },
+      },
     },
     defaultProps: {
       focusBorderColor: 'brand.accent', // Ensure focus uses accent color
     },
   },
-  // Placeholder for other components like Card, Select etc.
-  // Card: { baseStyle: { ... }, variants: { ... } }
 };
 
 export const theme = extendTheme({

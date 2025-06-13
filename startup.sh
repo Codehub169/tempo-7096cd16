@@ -49,8 +49,8 @@ else
     npm install
 fi
 
-# Initialize and seed database if db.js supports it and it hasn't been done
-echo "Initializing database (if applicable)..."
+# Initialize and seed database
+echo "Initializing and seeding database..."
 # Check if the DB_PATH environment variable is set to use a file-based DB
 if [[ -n "${DB_PATH}" && "${DB_PATH}" != ":memory:" ]]; then
     if [ ! -f "${DB_PATH}" ]; then
@@ -59,13 +59,14 @@ if [[ -n "${DB_PATH}" && "${DB_PATH}" != ":memory:" ]]; then
         echo "Database seeded."
     else
         echo "Database file ${DB_PATH} found. Assuming already initialized/seeded."
+        # Optionally, you might still want to run init if it's idempotent and handles updates
+        # node db.js init 
     fi
 else
-    echo "Using in-memory database or DB_PATH not set for file. Seeding may occur on each start if 'init' is passed."
-    # For in-memory, seeding is typically handled by db.js on connection or if tables are empty.
-    # If db.js init is safe to run multiple times for :memory: or always needed:
-    # node db.js init 
-    # echo "Attempted in-memory DB init/seed if configured in db.js"
+    echo "Using in-memory database or DB_PATH not set for file. Seeding database..."
+    # For in-memory, db.js init is needed on each start to populate data
+    node db.js init 
+    echo "In-memory database seeded."
 fi
 
 echo "Backend setup complete."

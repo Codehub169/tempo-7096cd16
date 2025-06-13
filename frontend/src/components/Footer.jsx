@@ -24,10 +24,10 @@ const Footer = () => {
             <Link as={RouterLink} to="/shop" _hover={{ color: 'brand.primary' }} fontWeight="medium">
               Shop
             </Link>
-            <Link href="#" isExternal _hover={{ color: 'brand.primary' }} fontWeight="medium">
+            <Link as={RouterLink} to="/privacy-policy" _hover={{ color: 'brand.primary' }} fontWeight="medium">
               Privacy Policy
             </Link>
-            <Link href="#" isExternal _hover={{ color: 'brand.primary' }} fontWeight="medium">
+            <Link as={RouterLink} to="/terms-of-service" _hover={{ color: 'brand.primary' }} fontWeight="medium">
               Terms of Service
             </Link>
           </HStack>
@@ -35,35 +35,35 @@ const Footer = () => {
           <HStack spacing={5}>
             <IconButton
               as="a"
-              href="#"
+              href="#" // Placeholder social media link
               aria-label="Facebook"
               icon={<FaFacebookF />}
               isRound
               variant="ghost"
               color="brand.text"
-              _hover={{ bg: 'brand.primaryLight', color: 'brand.primary' }}
+              _hover={{ bg: 'brand.lightBg', color: 'brand.primary' }}
               size="lg"
             />
             <IconButton
               as="a"
-              href="#"
+              href="#" // Placeholder social media link
               aria-label="Instagram"
               icon={<FaInstagram />}
               isRound
               variant="ghost"
               color="brand.text"
-              _hover={{ bg: 'brand.primaryLight', color: 'brand.primary' }}
+              _hover={{ bg: 'brand.lightBg', color: 'brand.primary' }}
               size="lg"
             />
             <IconButton
               as="a"
-              href="#"
+              href="#" // Placeholder social media link
               aria-label="Twitter"
               icon={<FaTwitter />}
               isRound
               variant="ghost"
               color="brand.text"
-              _hover={{ bg: 'brand.primaryLight', color: 'brand.primary' }}
+              _hover={{ bg: 'brand.lightBg', color: 'brand.primary' }}
               size="lg"
             />
           </HStack>
