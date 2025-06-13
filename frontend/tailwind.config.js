@@ -7,22 +7,21 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        heading: ['Poppins', 'sans-serif'], // Corresponds to Chakra 'heading'
-        body: ['Inter', 'sans-serif'],    // Corresponds to Chakra 'body'
+        heading: ['Poppins', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
       },
-      // It's generally recommended to manage colors via the Chakra UI theme (theme.js)
-      // and use Chakra's style props or CSS-in-JS capabilities for styling.
-      // However, if you need to use Tailwind color classes directly for some reason,
-      // you could define them here, ideally referencing your CSS variables or Chakra theme tokens.
-      // Example for referencing CSS variables (defined in your global CSS, e.g., index.css):
-      // colors: {
-      //   'brand-primary': 'var(--color-brand-primary)',
-      //   'brand-secondary': 'var(--color-brand-secondary)',
-      //   // Ensure these CSS variables are defined, e.g., in src/index.css
-      //   // :root {
-      //   //   --color-brand-primary: #ff8fab; /* Example value */
-      //   // }
-      // }
+      colors: {
+        'brand-primary': 'var(--brand-primary)',
+        'brand-secondary': 'var(--brand-secondary)',
+        'brand-accent': 'var(--brand-accent)',
+        'brand-text': 'var(--brand-text)',
+        'brand-heading': 'var(--brand-heading)',
+        'brand-background': 'var(--brand-background)',
+        'brand-white': 'var(--brand-white)',
+        'brand-border': 'var(--brand-border)',
+        'brand-lightBg': 'var(--brand-lightBg)',
+        'brand-success': 'var(--brand-success)',
+      }
     },
   },
   plugins: [],
