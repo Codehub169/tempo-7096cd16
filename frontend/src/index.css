@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* CSS Custom Properties for reference, primarily managed by Chakra theme */
+    --brand-primary: #ff8fab;
+    --brand-secondary: #fddde6;
+    --brand-accent: #84d2f6;
+    --brand-text: #6d6d6d;
+    --brand-heading: #3a3a3a;
+    --brand-background: #fdf6f8;
+    --brand-white: #ffffff;
+    --brand-border: #e0e0e0;
+    --brand-lightBg: #f0f8ff;
+    --brand-success: #a9def9;
+    --brand-shadow: rgba(255, 143, 171, 0.15);
+  }
+
+  body {
+    /* Applied via Chakra theme, but good to have Tailwind defaults */
+    @apply font-body bg-brand-background text-brand-text;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    /* Applied via Chakra theme */
+    @apply font-heading text-brand-heading;
+  }
+
+  /* Custom scrollbar styling inspired by HTML previews */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--brand-secondary); /* Light pinkish background */
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--brand-primary); /* Main pink */
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #e07d9a; /* Darker pink */
+  }
+}
