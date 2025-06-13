@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Box, Heading, Text, Button, VStack, FormControl, Input, InputGroup, InputLeftElement, Icon, Link, Center, useToast } from '@chakra-ui/react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { FaUserPlus, FaEnvelope, FaLock } from 'react-icons/fa';
-import { GiTeddyBear } from 'react-icons/gi'; // Changed from GiPlushBear
+import { GiPlushBear } from 'react-icons/gi'; // Reverted to GiPlushBear as GiTeddyBear is not exported
 
 const API_BASE_URL = 'http://localhost:9000/api'; // As seen in the logs
 
@@ -29,30 +29,7 @@ const SignupPage = () => {
   const toast = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Add keyframes for animations dynamically
-  useEffect(() => {
-    const keyframes = `
-      @keyframes float {
-        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-        100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; } /* Float up and fade out */
-      }
-      @keyframes bounce {
-        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-        40% { transform: translateY(-20px); }
-        60% { transform: translateY(-10px); }
-      }
-    `;
-    const styleSheet = document.styleSheets[0];
-    try {
-      // Check if rule already exists to avoid duplication errors during HMR
-      if (styleSheet.cssRules && !Array.from(styleSheet.cssRules).some(rule => rule.name === 'float')) {
-           styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
-      }
-    } catch (e) {
-        // Catch potential errors if browser restricts CSS rule insertion or if it's a non-issue
-        console.warn("Could not insert @keyframes rule, it might already exist or browser restrictions apply.", e);
-    }
-  }, []);
+  // Keyframes are now defined directly in the JSX using a <style> tag for consistency and robustness.
 
   const shapes = Array.from({ length: 15 }).map((_, i) => ({
     id: i,
@@ -78,6 +55,7 @@ const SignupPage = () => {
         status: "warning",
         duration: 3000,
         isClosable: true,
+        position: 'top-right',
       });
       setIsLoading(false);
       return;
@@ -101,6 +79,7 @@ const SignupPage = () => {
         status: "success",
         duration: 3000,
         isClosable: true,
+        position: 'top-right',
       });
       navigate('/login'); // Redirect to login page after successful signup
     } catch (error) {
@@ -110,6 +89,7 @@ const SignupPage = () => {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: 'top-right',
       });
     }
     setIsLoading(false);
@@ -117,6 +97,19 @@ const SignupPage = () => {
 
   return (
     <Box minH="calc(100vh - 160px)" bg="brand.lightBg" display="flex" alignItems="center" justifyContent="center" position="relative" overflow="hidden" py={10}>
+      <style>
+        {`
+          @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; } /* Float up and fade out */
+          }
+          @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+          }
+        `}
+      </style>
       {/* Animated background shapes */}
       <Box position="absolute" top="0" left="0" w="full" h="full" zIndex="0">
         {shapes.map(shape => (
@@ -138,7 +131,7 @@ const SignupPage = () => {
           _hover={{ transform: 'translateY(-5px)' }} // Slight lift on hover
         >
           <VStack spacing={3} mb={4}>
-            <Icon as={GiTeddyBear} w={20} h={20} color="brand.primary" animation="bounce 1.5s infinite" /> {/* Fixed Icon */}
+            <Icon as={GiPlushBear} w={20} h={20} color="brand.primary" animation="bounce 1.5s infinite" /> {/* Fixed Icon */}
             <Heading as="h1" size="xl" color="brand.heading">
               Join Plushie Paradise!
             </Heading>
