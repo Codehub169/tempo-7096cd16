@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Box, Heading, Text, Button, VStack, FormControl, Input, InputGroup, InputLeftElement, Icon, Link, Center, useToast } from '@chakra-ui/react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { FaUserPlus, FaEnvelope, FaLock } from 'react-icons/fa';
-import { GiPlushBear } from 'react-icons/gi'; // Reverted to GiPlushBear as GiTeddyBear is not exported
+import { GiBearHead } from 'react-icons/gi'; // Replaced GiPlushBear with GiBearHead as it's available
 
-const API_BASE_URL = 'http://localhost:9000/api'; // As seen in the logs
+const API_BASE_URL = '/api'; // Relative path for API calls when served by the backend
 
 // A simple animation component for background decoration
 const AnimatedShape = ({ color, left, animationDelay, animationDuration, size, isSquare }) => {
@@ -131,7 +131,7 @@ const SignupPage = () => {
           _hover={{ transform: 'translateY(-5px)' }} // Slight lift on hover
         >
           <VStack spacing={3} mb={4}>
-            <Icon as={GiPlushBear} w={20} h={20} color="brand.primary" animation="bounce 1.5s infinite" /> {/* Fixed Icon */}
+            <Icon as={GiBearHead} w={20} h={20} color="brand.primary" animation="bounce 1.5s infinite" /> {/* Fixed Icon */}
             <Heading as="h1" size="xl" color="brand.heading">
               Join Plushie Paradise!
             </Heading>
