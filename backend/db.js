@@ -95,9 +95,7 @@ const seedDatabase = () => {
         const categories = [
             { name: 'Forest Friends' },
             { name: 'Ocean Buddies' },
-            { name: 'Jungle Jammers' },
-            { name: 'Fantasy Creatures' },
-            { name: 'Classic Cuddlies' }
+            { name: 'Fantasy Creatures' }
         ];
         const categoryStmt = db.prepare("INSERT OR IGNORE INTO categories (name) VALUES (?)");
         categories.forEach(cat => categoryStmt.run(cat.name));
@@ -115,12 +113,9 @@ const seedDatabase = () => {
             rows.forEach(row => categoryMap[row.name] = row.id);
 
             const products = [
-                { name: 'Barnaby Bear', description: 'A classic, cuddly brown bear, perfect for hugs and adventures. Made from super-soft, eco-friendly materials.', price: 29.99, imageUrl: 'https://placehold.co/400x400/fddde6/3a3a3a?text=Barnaby', category: 'Classic Cuddlies', stock: 15, popularity: 100 },
                 { name: 'Flippy Penguin', description: 'A charming penguin from the Antarctic, always ready for a slide.', price: 24.99, imageUrl: 'https://placehold.co/400x400/a9def9/3a3a3a?text=Flippy', category: 'Ocean Buddies', stock: 20, popularity: 90 },
-                { name: 'Leo the Lion', description: 'The king of the plushie jungle! Brave and soft.', price: 32.99, imageUrl: 'https://placehold.co/400x400/fcf6bd/3a3a3a?text=Leo', category: 'Jungle Jammers', stock: 12, popularity: 95 },
                 { name: 'Hoppy Bunny', description: 'A soft bunny with long, floppy ears and a twitchy nose.', price: 27.99, imageUrl: 'https://placehold.co/400x400/c3b1e1/3a3a3a?text=Hoppy', category: 'Forest Friends', stock: 18, popularity: 85 },
                 { name: 'Shelly Turtle', description: 'A wise old turtle, slow but steady, with a beautiful shell.', price: 22.99, imageUrl: 'https://placehold.co/400x400/bde0fe/3a3a3a?text=Shelly', category: 'Ocean Buddies', stock: 25, popularity: 70 },
-                { name: 'Gigi Giraffe', description: 'A tall and graceful giraffe plush with a long neck for nuzzling.', price: 34.99, imageUrl: 'https://placehold.co/400x400/ffdfb0/3a3a3a?text=Gigi', category: 'Jungle Jammers', stock: 10, popularity: 80 },
                 { name: 'Wally Whale', description: 'A giant, gentle whale of the ocean, perfect for big cuddles.', price: 39.99, imageUrl: 'https://placehold.co/400x400/84d2f6/3a3a3a?text=Wally', category: 'Ocean Buddies', stock: 8, popularity: 75 },
                 { name: 'Foxy Fox', description: 'A clever and sly fox plush, with a bushy tail.', price: 28.99, imageUrl: 'https://placehold.co/400x400/ffb347/3a3a3a?text=Foxy', category: 'Forest Friends', stock: 16, popularity: 88 },
                 { name: 'Sparkle Unicorn', description: 'A magical unicorn with a rainbow mane and a sparkly horn.', price: 35.99, imageUrl: 'https://placehold.co/400x400/E6E6FA/3a3a3a?text=Sparkle', category: 'Fantasy Creatures', stock: 10, popularity: 110 },
