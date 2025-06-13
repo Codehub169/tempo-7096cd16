@@ -4,7 +4,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { FaUserPlus, FaEnvelope, FaLock } from 'react-icons/fa';
 import { GiBearHead } from 'react-icons/gi'; // Replaced GiPlushBear with GiBearHead as it's available
 
-const API_BASE_URL = '/api'; // Relative path for API calls when served by the backend
+const API_BASE_URL = '/api'; // Corrected API_BASE_URL to relative path
 
 // A simple animation component for background decoration
 const AnimatedShape = ({ color, left, animationDelay, animationDuration, size, isSquare }) => {

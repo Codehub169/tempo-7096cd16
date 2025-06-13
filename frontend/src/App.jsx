@@ -9,10 +9,11 @@ import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-// Removed import NotFoundPage from './pages/NotFoundPage'; as it's not used and DefaultNotFoundPage is used instead.
-
-// Placeholder for NotFoundPage if not fully implemented in ./pages/
-const DefaultNotFoundPage = () => <div style={{textAlign: 'center', padding: '2rem'}}>404 - Page Not Found. This plushie seems to have wandered off!</div>;
+import NotFoundPage from './pages/NotFoundPage'; // Import the new NotFoundPage
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
+import UserAccountPage from './pages/UserAccountPage';
+import OrderHistoryPage from './pages/OrderHistoryPage';
 
 function App() {
   return (
@@ -26,12 +27,11 @@ function App() {
         <Route path="confirmation" element={<OrderConfirmationPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="signup" element={<SignupPage />} />
-        {/* 
-          If NotFoundPage.jsx exists and is correctly implemented in src/pages, use: 
-          <Route path="*" element={<NotFoundPage />} /> 
-          Otherwise, use the placeholder:
-        */}
-        <Route path="*" element={<DefaultNotFoundPage />} />
+        <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="terms-of-service" element={<TermsOfServicePage />} />
+        <Route path="account" element={<UserAccountPage />} />
+        <Route path="account/orders" element={<OrderHistoryPage />} />
+        <Route path="*" element={<NotFoundPage />} /> {/* Use the new NotFoundPage */}
       </Route>
     </Routes>
   );

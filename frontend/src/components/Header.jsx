@@ -1,19 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Flex, Link, HStack, IconButton, Icon, Text, useDisclosure, Drawer, DrawerBody, DrawerHeader, DrawerOverlay, DrawerContent, DrawerCloseButton, VStack, Button } from '@chakra-ui/react';
+import { Box, Flex, Link, HStack, IconButton, Icon, Text, useDisclosure, Drawer, DrawerBody, DrawerHeader, DrawerOverlay, DrawerContent, DrawerCloseButton, VStack, Button, Menu, MenuButton, MenuList, MenuItem, MenuDivider } from '@chakra-ui/react';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
-import { HamburgerIcon } from '@chakra-ui/icons';
+import { HamburgerIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import { FaShoppingCart, FaUserCircle } from 'react-icons/fa';
-import { GiHeartWings } from 'react-icons/gi'; // Placeholder Logo Icon
+import { GiHeartWings } from 'react-icons/gi';
+import { FiLogOut, FiUser, FiBox } from 'react-icons/fi';
 
-const API_BASE_URL = 'http://localhost:9000/api';
+const API_BASE_URL = '/api'; // Changed to relative path
 
-const NavLink = ({ to, children, onClick }) => {
+const NavLink = ({ to, children, onClick, isExternal }) => {
   const location = useLocation();
-  const isActive = location.pathname === to;
+  const isActive = !isExternal && location.pathname === to;
   return (
     <Link 
-      as={RouterLink} 
-      to={to} 
+      as={isExternal ? 'a' : RouterLink} 
+      to={isExternal ? undefined : to}
+      href={isExternal ? to : undefined}
+      target={isExternal ? '_blank' : undefined}
       px={3}
       py={2}
       rounded={'md'}
@@ -48,19 +51,25 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [cartItemCount, setCartItemCount] = useState(0);
-  const location = useLocation(); // To re-fetch cart count on navigation
+  const location = useLocation();
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('authToken'));
+  const [username, setUsername] = useState('');
 
-  const fetchCartCount = useCallback(async () => {
+  const fetchCartAndUser = useCallback(async () => {
     const token = localStorage.getItem('authToken');
     if (!token) {
       setCartItemCount(0);
       setIsLoggedIn(false);
+      setUsername('');
       return;
     }
     setIsLoggedIn(true);
     try {
+        // Decode username from token (basic client-side decode)
+        const decodedToken = JSON.parse(atob(token.split('.')[1]));
+        setUsername(decodedToken.username || 'User');
+
       const response = await fetch(`${API_BASE_URL}/cart`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -68,43 +77,47 @@ const Header = () => {
         const items = await response.json();
         setCartItemCount(items.reduce((sum, item) => sum + item.quantity, 0));
       } else if (response.status === 401 || response.status === 403) {
-        // Token might be invalid or expired
         localStorage.removeItem('authToken');
         setIsLoggedIn(false);
+        setUsername('');
         setCartItemCount(0);
-        // Optionally navigate to login or show a toast
+        navigate('/login');
       } else {
-        setCartItemCount(0); // Default to 0 on other errors
+        setCartItemCount(0);
       }
     } catch (error) {
-      console.error('Failed to fetch cart count:', error);
+      console.error('Failed to fetch cart/user data:', error);
       setCartItemCount(0);
+      // Potentially handle token parsing error more gracefully
+      if (error instanceof SyntaxError || (error.message && error.message.includes('token'))) {
+          localStorage.removeItem('authToken');
+          setIsLoggedIn(false);
+          setUsername('');
+      }
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
-    fetchCartCount();
-  }, [location, fetchCartCount]); // Re-fetch on location change (e.g., after login/logout or cart update)
+    fetchCartAndUser();
+  }, [location, fetchCartAndUser]);
 
-  // Effect for scroll handling
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Listen to storage changes to update login state (e.g. if token removed in another tab)
-    useEffect(() => {
-        const handleStorageChange = () => {
+  useEffect(() => {
+    const handleStorageChange = (event) => {
+        if (event.key === 'authToken') {
             const token = localStorage.getItem('authToken');
             setIsLoggedIn(!!token);
-            if (token) fetchCartCount(); else setCartItemCount(0);
-        };
-        window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
-    }, [fetchCartCount]);
+            if (token) fetchCartAndUser(); else { setCartItemCount(0); setUsername(''); }
+        }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [fetchCartAndUser]);
 
   const navItems = [
     { label: 'Home', path: '/' },
@@ -113,10 +126,11 @@ const Header = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
-    // localStorage.removeItem('userData'); // if you stored user data
     setIsLoggedIn(false);
+    setUsername('');
     setCartItemCount(0);
     navigate('/login');
+    if(isOpen) onClose(); // Close mobile drawer if open
   };
 
   return (
@@ -154,14 +168,43 @@ const Header = () => {
             ))}
           </HStack>
         </HStack>
-        <Flex alignItems={'center'} spacing={4}>
+        <Flex alignItems={'center'} spacing={{base: 2, md: 4}}>
           {isLoggedIn ? (
-            <Button onClick={handleLogout} variant="ghost" colorScheme="primary" size="sm">Logout</Button>
+            <Menu>
+              <MenuButton 
+                as={Button} 
+                rounded={'full'} 
+                variant={'link'} 
+                cursor={'pointer'} 
+                minW={0}
+                px={1}
+                _hover={{textDecoration: 'none'}}
+                _active={{boxShadow: 'none'}}
+                rightIcon={<ChevronDownIcon color="brand.text"/>}
+                >
+                <HStack>
+                    <Icon as={FaUserCircle} w={6} h={6} color="brand.primary"/>
+                    <Text display={{base: 'none', sm: 'inline'}} fontWeight="medium" color="brand.text">{username}</Text>
+                </HStack>
+              </MenuButton>
+              <MenuList zIndex="popover" bg="white" borderColor="brand.border" boxShadow="lg">
+                <MenuItem as={RouterLink} to="/account" icon={<Icon as={FiUser} w={4} h={4} color="brand.primary"/>}>
+                  My Account
+                </MenuItem>
+                <MenuItem as={RouterLink} to="/account/orders" icon={<Icon as={FiBox} w={4} h={4} color="brand.primary"/>}>
+                  Order History
+                </MenuItem>
+                <MenuDivider borderColor="brand.border"/>
+                <MenuItem onClick={handleLogout} icon={<Icon as={FiLogOut} w={4} h={4} color="red.500"/>} color="red.500" fontWeight="medium">
+                  Logout
+                </MenuItem>
+              </MenuList>
+            </Menu>
           ) : (
             <IconButton
               as={RouterLink}
               to="/login"
-              aria-label="Account"
+              aria-label="Login/Signup"
               icon={<Icon as={FaUserCircle} w={6} h={6} />}
               variant="ghost"
               color="brand.text"
@@ -203,12 +246,11 @@ const Header = () => {
         </Flex>
       </Flex>
 
-      {/* Mobile Drawer */}
       <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader borderBottomWidth="1px">
+          <DrawerHeader borderBottomWidth="1px" borderColor="brand.border">
             <Link as={RouterLink} to="/" display="flex" alignItems="center" _hover={{ textDecoration: 'none' }} onClick={onClose}>
               <Icon as={GiHeartWings} w={8} h={8} color="brand.primary" mr={2} />
               <Text fontSize="xl" fontWeight="bold" color="brand.heading" fontFamily="heading">
@@ -221,7 +263,16 @@ const Header = () => {
               {navItems.map((item) => (
                 <NavLink key={item.label} to={item.path} onClick={onClose}>{item.label}</NavLink>
               ))}
-              {isLoggedIn && <Button onClick={() => { handleLogout(); onClose(); }} variant="outline" colorScheme="primary" w="full" mt={4}>Logout</Button>}
+              <Divider my={3} borderColor="brand.border"/>
+              {isLoggedIn ? (
+                <>
+                  <Button as={RouterLink} to="/account" leftIcon={<FiUser/>} justifyContent="flex-start" variant="ghost" onClick={onClose} w="full">My Account</Button>
+                  <Button as={RouterLink} to="/account/orders" leftIcon={<FiBox/>} justifyContent="flex-start" variant="ghost" onClick={onClose} w="full">Order History</Button>
+                  <Button onClick={handleLogout} variant="outline" colorScheme="red" w="full" mt={4} leftIcon={<FiLogOut/>}>Logout</Button>
+                </>
+              ) : (
+                <Button as={RouterLink} to="/login" variant="gradient" onClick={onClose} w="full">Login / Signup</Button>
+              )}
             </VStack>
           </DrawerBody>
         </DrawerContent>
